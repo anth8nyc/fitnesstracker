@@ -18,21 +18,11 @@ app.use(express.static("public"));
 
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/", { useNewUrlParser: true });
 
-// db.Workout.create({ name: "Ernest Hemingway" })
-//   .then(dbUser => {
-//     console.log(dbUser);
-//   })
-//   .catch(({ message }) => {
-//     console.log(message);
-//   });
-
-app.get("/exercise", (req, res) => {
-  
+app.get("/exercise", (req, res) => {  
   res.sendFile(path.join(__dirname, './public/exercise.html'));
 });
 
-app.get("/stats", (req, res) => {
-  
+app.get("/stats", (req, res) => {  
   res.sendFile(path.join(__dirname, './public/stats.html'));
 });
 
@@ -56,15 +46,35 @@ app.post("/api/workouts", ({ body }, res) => {
     });
 });
 
-// app.get("/user", (req, res) => {
-//   db.User.find({})
-//     .then(dbUser => {
-//       res.json(dbUser);
-//     })
-//     .catch(err => {
-//       res.json(err);
-//     });
-// });
+app.put("/api/workouts/:id", (req, res) => {
+  db.Workout.update(
+    {
+      _id: mongojs.ObjectId(req.params.id)
+    },
+    {
+      $set: {
+        day:  Date().now(),
+        exercises: [ 
+          {
+          name: req.body.name,
+          type: req.body.type,
+          duration: req.body.duration,
+          weight: req.body.weight,
+          reps: req.body.reps,
+          sets: req.body.sets,
+        }]
+      }
+    },
+    (error, data) => {
+      if (error) {
+        res.send(error);
+      } else {
+        res.send(data);
+      }
+    }
+  );
+});
+
 
 // app.post("/submit", ({ body }, res) => {
 //   db.Note.create(body)
