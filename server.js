@@ -3,6 +3,7 @@ const logger = require("morgan");
 const mongoose = require("mongoose");
 const path = require("path")
 
+
 const PORT = process.env.PORT || 3000;
 
 const db = require("./models");
@@ -28,8 +29,18 @@ app.get("/stats", (req, res) => {
 
 app.get("/api/workouts", (req, res) => {
   db.Workout.find({})
-    .then(dbNote => {
-      res.json(dbNote);
+    .then(dbWorkout => {
+      res.json(dbWorkout);
+    })
+    .catch(err => {
+      res.json(err);
+    });
+});
+
+app.get("/api/workouts/range", (req, res) => {
+  db.Workout.find({})
+    .then(dbWorkout => {
+      res.json(dbWorkout);
     })
     .catch(err => {
       res.json(err);
@@ -49,11 +60,11 @@ app.post("/api/workouts", ({ body }, res) => {
 app.put("/api/workouts/:id", (req, res) => {
   db.Workout.update(
     {
-      _id: mongojs.ObjectId(req.params.id)
+      _id: mongoose.ObjectId(req.params.id)
     },
     {
       $set: {
-        day:  Date().now(),
+        day:  Date.now(),
         exercises: [ 
           {
           name: req.body.name,
