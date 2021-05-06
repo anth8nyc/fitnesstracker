@@ -17,7 +17,16 @@ app.use(express.json());
 
 app.use(express.static("public"));
 
-mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/workout", { useNewUrlParser: true });
+
+mongoose.connect(
+  process.env.MONGODB_URI || 'mongodb://localhost/workout',
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false
+  }
+);
 
 app.get("/exercise", (req, res) => {  
   res.sendFile(path.join(__dirname, './public/exercise.html'));
@@ -28,7 +37,13 @@ app.get("/stats", (req, res) => {
 });
 
 app.get("/api/workouts", (req, res) => {
-  db.Workout.find({}).sort({day: -1}).limit(1)
+  db.Workout.aggregate( [
+    {
+      $addFields: {
+        totalDuration: { $sum: "$exercises.duration" } ,
+      }
+    }
+  ]).sort({day: -1}).limit(1)
     .then(dbWorkout => {
       res.json(dbWorkout);
     })
@@ -38,7 +53,13 @@ app.get("/api/workouts", (req, res) => {
 });
 
 app.get("/api/workouts/range", (req, res) => {
-  db.Workout.find({}).sort({day:-1}).limit(7)
+  db.Workout.aggregate( [
+      {
+        $addFields: {
+          totalDuration: { $sum: "$exercises.duration" } ,
+        }
+      }
+    ]).sort({day:-1}).limit(7)
     .then(dbWorkout => {
       console.log(dbWorkout);
       res.json(dbWorkout);
@@ -61,7 +82,7 @@ app.post("/api/workouts", ({ body }, res) => {
 app.put("/api/workouts/:id", (req, res) => {
   db.Workout.findByIdAndUpdate(req.params.id, 
     {$push: {exercises: req.body } }, 
-    {new : true} ) 
+    {new : true} )
   .then(dbWorkout => {
     res.json(dbWorkout);
   })
@@ -69,20 +90,6 @@ app.put("/api/workouts/:id", (req, res) => {
     res.json(err);
   });
 });
-
-
-// app.post("/submit", ({ body }, res) => {
-//   db.Note.create(body)
-//     .then(({ _id }) => db.User.findOneAndUpdate({}, { $push: { notes: _id } }, { new: true }))
-//     .then(dbUser => {
-//       res.json(dbUser);
-//     })
-//     .catch(err => {
-//       res.json(err);
-//     });
-// });
-
-
 
 // Start the server
 app.listen(PORT, () => {
