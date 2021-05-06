@@ -38,7 +38,7 @@ app.get("/api/workouts", (req, res) => {
 });
 
 app.get("/api/workouts/range", (req, res) => {
-  db.Workout.find({})
+  db.Workout.find({}).limit(7)
     .then(dbWorkout => {
       console.log(dbWorkout);
       res.json(dbWorkout);
@@ -59,7 +59,7 @@ app.post("/api/workouts", ({ body }, res) => {
 });
 
 app.put("/api/workouts/:id", (req, res) => {
-  db.Workout.update(
+  db.Workout.findByIdAndUpdate(
     {
       _id: mongoose.ObjectId(req.params.id)
     },
@@ -68,8 +68,8 @@ app.put("/api/workouts/:id", (req, res) => {
         day:  Date.now(),
         exercises: [ 
           {
-          name: req.body.name,
           type: req.body.type,
+          name: req.body.name,
           duration: req.body.duration,
           weight: req.body.weight,
           reps: req.body.reps,
@@ -99,21 +99,21 @@ app.put("/api/workouts/:id", (req, res) => {
 //     });
 // });
 
-// app.get("/populateduser", (req, res) => {
-//   // TODO
-//   // =====
-//   // Write the query to grab the documents from the User collection,
-//   // and populate them with any associated Notes.
-//   // TIP: Check the models out to see how the Notes refers to the User
-//   db.User.find({})
-//     .populate("notes")
-//     .then(dbNote => {
-//       res.json(dbNote);
-//     })
-//     .catch(err => {
-//       res.json(err);
-//     });
-// });
+app.get("/populateduser", (req, res) => {
+  // TODO
+  // =====
+  // Write the query to grab the documents from the User collection,
+  // and populate them with any associated Notes.
+  // TIP: Check the models out to see how the Notes refers to the User
+  db.User.find({})
+    .populate("notes")
+    .then(dbNote => {
+      res.json(dbNote);
+    })
+    .catch(err => {
+      res.json(err);
+    });
+});
 
 // Start the server
 app.listen(PORT, () => {
