@@ -28,7 +28,7 @@ app.get("/stats", (req, res) => {
 });
 
 app.get("/api/workouts", (req, res) => {
-  db.Workout.find({})
+  db.Workout.find({}).sort({day: -1}).limit(1)
     .then(dbWorkout => {
       res.json(dbWorkout);
     })
@@ -38,7 +38,7 @@ app.get("/api/workouts", (req, res) => {
 });
 
 app.get("/api/workouts/range", (req, res) => {
-  db.Workout.find({}).limit(7)
+  db.Workout.find({}).sort({day:-1}).limit(7)
     .then(dbWorkout => {
       console.log(dbWorkout);
       res.json(dbWorkout);
@@ -59,32 +59,15 @@ app.post("/api/workouts", ({ body }, res) => {
 });
 
 app.put("/api/workouts/:id", (req, res) => {
-  db.Workout.findByIdAndUpdate(
-    {
-      _id: mongoose.ObjectId(req.params.id)
-    },
-    {
-      $set: {
-        day:  Date.now(),
-        exercises: [ 
-          {
-          type: req.body.type,
-          name: req.body.name,
-          duration: req.body.duration,
-          weight: req.body.weight,
-          reps: req.body.reps,
-          sets: req.body.sets,
-        }]
-      }
-    },
-    (error, data) => {
-      if (error) {
-        res.send(error);
-      } else {
-        res.send(data);
-      }
-    }
-  );
+  db.Workout.findByIdAndUpdate(req.params.id, 
+    {$push: {exercises: req.body } }, 
+    {new : true} ) 
+  .then(dbWorkout => {
+    res.json(dbWorkout);
+  })
+  .catch(err => {
+    res.json(err);
+  });
 });
 
 
@@ -99,21 +82,7 @@ app.put("/api/workouts/:id", (req, res) => {
 //     });
 // });
 
-app.get("/populateduser", (req, res) => {
-  // TODO
-  // =====
-  // Write the query to grab the documents from the User collection,
-  // and populate them with any associated Notes.
-  // TIP: Check the models out to see how the Notes refers to the User
-  db.User.find({})
-    .populate("notes")
-    .then(dbNote => {
-      res.json(dbNote);
-    })
-    .catch(err => {
-      res.json(err);
-    });
-});
+
 
 // Start the server
 app.listen(PORT, () => {
